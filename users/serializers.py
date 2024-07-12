@@ -28,16 +28,20 @@ class MyUserSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
+    activation_code = serializers.CharField()
 
     def validate(self, data):
         username = data.get('username')
         password = data.get('password')
+        activation_code = data.get('activation_code')
 
         if username and password:
             user = authenticate(username=username, password=password)
             if user:
                 if not user.is_active:
                     raise serializers.ValidationError('User is deactivated.')
+                if user.activation_code != activation_code:
+                    raise serializers.ValidationError('Activation_code not correct.')
             else:
                 raise serializers.ValidationError('Unable to log in with provided credentials.')
         else:
@@ -62,5 +66,5 @@ class ActivationSerializer(serializers.Serializer):
         username = self.validated_data.get('username')
         user = MyUser.objects.get(username=username)
         user.is_active = True
-        user.activation_code = ''
+        user.create_activation_code()
         user.save()
