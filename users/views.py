@@ -32,6 +32,8 @@ class LoginView(views.APIView):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
+            user.activation_code = ''
+            user.save()
             refresh = RefreshToken.for_user(user)
             return Response({
                 'refresh': str(refresh),

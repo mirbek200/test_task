@@ -66,4 +66,5 @@ class ActivationSerializer(serializers.Serializer):
         username = self.validated_data.get('username')
         user = MyUser.objects.get(username=username)
         user.is_active = True
+        user.activation_code = ''
         user.save()
