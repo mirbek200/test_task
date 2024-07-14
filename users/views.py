@@ -21,7 +21,6 @@ class RegistrationView(APIView):
         serializer = MyUserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            user.create_activation_code()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -34,8 +33,6 @@ class LoginView(views.APIView):
         if serializer.is_valid():
             user = serializer.validated_data['user']
             refresh = RefreshToken.for_user(user)
-            user.create_activation_code()
-            user.save()
             return Response({
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
@@ -49,6 +46,8 @@ class SendActivationCodeAPIView(APIView):
         username = request.data.get('username')
         tg = request.data.get('tg')
         user = get_object_or_404(MyUser, username=username)
+        user.create_activation_code()
+        user.save()
         asyncio.run(self.send_activation_code_via_telegram(user, tg))
 
         return Response({'message': 'Код активации отправлен'})
